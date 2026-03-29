@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerCompass AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --rust: #c45c26;
+    --teal: #1a6b6b;
+    --cream: #faf7f2;
+    --muted: #7a7060;
+    --border: #d9d0bc;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--paper);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--ink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span {
+    color: var(--gold);
+  }
+
+  .tagline {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 70px 40px 50px;
+    position: relative;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rust);
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 7vw, 80px);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 30px 100px;
+  }
+
+  /* QUESTION STEPS */
+  .step {
+    display: none;
+    animation: fadeSlideIn 0.5s ease forwards;
+  }
+
+  .step.active { display: block; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-header {
+    margin-bottom: 36px;
+  }
+
+  .step-num {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .step-num span {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .step-question {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+
+  /* OPTION CARDS */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 36px;
+  }
+
+  .option-card {
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 22px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    z-index: 0;
+  }
+
+  .option-card:hover::before,
+  .option-card.selected::before {
+    transform: translateY(0);
+  }
+
+  .option-card:hover .option-label,
+  .option-card.selected .option-label,
+  .option-card:hover .option-desc,
+  .option-card.selected .option-desc,
+  .option-card:hover .option-icon,
+  .option-card.selected .option-icon {
+    color: var(--paper);
+    position: relative;
+    z-index: 1;
+  }
+
+  .option-card.selected {
+    border-color: var(--ink);
+  }
+
+  .option-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    display: block;
+    transition: color 0.2s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .option-label {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 5px;
+    transition: color 0.2s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .option-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    transition: color 0.2s;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* TEXT INPUT */
+  .text-input-wrap {
+    margin-bottom: 36px;
+  }
+
+  .text-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+
+  .text-input:focus {
+    border-color: var(--ink);
+  }
+
+  .text-input::placeholder { color: var(--muted); }
+
+  /* BUTTONS */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 14px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--rust);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-back {
+    background: none;
+    border: 1.5px solid var(--border);
+    padding: 14px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-back:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* PROGRESS */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 50px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.5s ease;
+    border-radius: 2px;
+  }
+
+  /* RESULT SECTION */
+  #result-section {
+    display: none;
+    animation: fadeSlideIn 0.6s ease forwards;
+  }
+
+  .result-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 30px;
+    margin-bottom: 40px;
+  }
+
+  .result-eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 54px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  /* AI RESPONSE */
+  .ai-response {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: 4px;
+    padding: 36px 40px;
+    line-height: 1.9;
+    font-size: 15px;
+    min-height: 200px;
+    position: relative;
+  }
+
+  .ai-response.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* FORMATTED AI OUTPUT */
+  .ai-response h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 28px 0 12px;
+    color: var(--ink);
+  }
+
+  .ai-response h2:first-child { margin-top: 0; }
+
+  .ai-response h3 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 24px 0 10px;
+  }
+
+  .ai-response p {
+    margin-bottom: 14px;
+    color: #2a2520;
+  }
+
+  .ai-response ul {
+    margin: 12px 0 18px 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .ai-response ul li {
+    padding: 6px 0 6px 20px;
+    position: relative;
+    color: #2a2520;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ai-response ul li:last-child { border-bottom: none; }
+
+  .ai-response ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .ai-response strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ACTIONS */
+  .result-actions {
+    margin-top: 36px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-outline {
+    background: none;
+    border: 1.5px solid var(--border);
+    padding: 12px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* DECORATIVE ELEMENTS */
+  .ornament {
+    text-align: center;
+    color: var(--gold-light);
+    font-size: 28px;
+    margin: 40px 0;
+    letter-spacing: 12px;
+  }
+
+  /* CHIPS (for showing selections) */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .chip {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 16px 20px; }
+    .hero { padding: 50px 20px 40px; }
+    .main { padding: 40px 20px 80px; }
+    .options-grid { grid-template-columns: 1fr 1fr; }
+    .ai-response { padding: 24px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🧭</div>
+    <div>
+      <div class="logo-text">Career<span>Compass</span></div>
+    </div>
+  </div>
+  <div class="tagline">AI · Career Intelligence</div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Your personal career advisor</div>
+  <h1>Find Your<br><em>True Path</em></h1>
+  <p class="hero-sub">Answer a few questions and get a personalized career roadmap, skill plan, and guidance — powered by AI.</p>
+</div>
+
+<div class="main">
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress" style="width: 0%"></div>
+  </div>
+
+  <!-- STEP 1: Interest Area -->
+  <div class="step active" id="step-1">
+    <div class="step-header">
+      <div class="step-num">Question <span>01</span> of 05</div>
+      <div class="step-question">What excites you the most?</div>
+    </div>
+    <div class="options-grid">
+      <div class="option-card" data-value="Technology & Coding" onclick="selectOption(this, 1)">
+        <span class="option-icon">💻</span>
+        <div class="option-label">Technology & Coding</div>
+        <div class="option-desc">Building apps, software, AI systems</div>
+      </div>
+      <div class="option-card" data-value="Business & Entrepreneurship" onclick="selectOption(this, 1)">
+        <span class="option-icon">🏢</span>
+        <div class="option-label">Business & Entrepreneurship</div>
+        <div class="option-desc">Strategy, startups, management</div>
+      </div>
+      <div class="option-card" data-value="Design & Creativity" onclick="selectOption(this, 1)">
+        <span class="option-icon">🎨</span>
+        <div class="option-label">Design & Creativity</div>
+        <div class="option-desc">UI/UX, branding, visual arts</div>
+      </div>
+      <div class="option-card" data-value="Science & Research" onclick="selectOption(this, 1)">
+        <span class="option-icon">🔬</span>
+        <div class="option-label">Science & Research</div>
+        <div class="option-desc">Medicine, data, engineering</div>
+      </div>
+      <div class="option-card" data-value="People & Communication" onclick="selectOption(this, 1)">
+        <span class="option-icon">🗣️</span>
+        <div class="option-label">People & Communication</div>
+        <div class="option-desc">Teaching, HR, sales, marketing</div>
+      </div>
+      <div class="option-card" data-value="Finance & Numbers" onclick="selectOption(this, 1)">
+        <span class="option-icon">📊</span>
+        <div class="option-label">Finance & Numbers</div>
+        <div class="option-desc">Investing, accounting, economics</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" id="next-1" onclick="nextStep(2)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Work Style -->
+  <div class="step" id="step-2">
+    <div class="step-header">
+      <div class="step-num">Question <span>02</span> of 05</div>
+      <div class="step-question">How do you prefer to work?</div>
+    </div>
+    <div class="options-grid">
+      <div class="option-card" data-value="Independently — deep focus, solo projects" onclick="selectOption(this, 2)">
+        <span class="option-icon">🧘</span>
+        <div class="option-label">Independently</div>
+        <div class="option-desc">Deep focus, solo projects</div>
+      </div>
+      <div class="option-card" data-value="In a team — collaboration and brainstorming" onclick="selectOption(this, 2)">
+        <span class="option-icon">🤝</span>
+        <div class="option-label">In a Team</div>
+        <div class="option-desc">Collaboration and brainstorming</div>
+      </div>
+      <div class="option-card" data-value="Leading others — I like to manage and direct" onclick="selectOption(this, 2)">
+        <span class="option-icon">🎯</span>
+        <div class="option-label">Leading Others</div>
+        <div class="option-desc">Managing and directing</div>
+      </div>
+      <div class="option-card" data-value="Mixed — I adapt to what's needed" onclick="selectOption(this, 2)">
+        <span class="option-icon">🔄</span>
+        <div class="option-label">Mixed</div>
+        <div class="option-desc">I adapt to what's needed</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="prevStep(1)">← Back</button>
+      <button class="btn-primary" id="next-2" onclick="nextStep(3)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Goal -->
+  <div class="step" id="step-3">
+    <div class="step-header">
+      <div class="step-num">Question <span>03</span> of 05</div>
+      <div class="step-question">What's your biggest career goal?</div>
+    </div>
+    <div class="options-grid">
+      <div class="option-card" data-value="Financial freedom and high income" onclick="selectOption(this, 3)">
+        <span class="option-icon">💰</span>
+        <div class="option-label">Financial Freedom</div>
+        <div class="option-desc">High income and wealth</div>
+      </div>
+      <div class="option-card" data-value="Making a positive impact on society" onclick="selectOption(this, 3)">
+        <span class="option-icon">🌍</span>
+        <div class="option-label">Social Impact</div>
+        <div class="option-desc">Making the world better</div>
+      </div>
+      <div class="option-card" data-value="Building my own business or startup" onclick="selectOption(this, 3)">
+        <span class="option-icon">🚀</span>
+        <div class="option-label">Build a Startup</div>
+        <div class="option-desc">Entrepreneurship and ownership</div>
+      </div>
+      <div class="option-card" data-value="Becoming an expert and authority in my field" onclick="selectOption(this, 3)">
+        <span class="option-icon">🏆</span>
+        <div class="option-label">Become an Expert</div>
+        <div class="option-desc">Deep mastery and recognition</div>
+      </div>
+      <div class="option-card" data-value="Work-life balance and flexibility" onclick="selectOption(this, 3)">
+        <span class="option-icon">⚖️</span>
+        <div class="option-label">Balance & Flexibility</div>
+        <div class="option-desc">Freedom and quality of life</div>
+      </div>
+      <div class="option-card" data-value="Rapid career growth and promotions" onclick="selectOption(this, 3)">
+        <span class="option-icon">📈</span>
+        <div class="option-label">Rapid Growth</div>
+        <div class="option-desc">Fast promotions and titles</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="prevStep(2)">← Back</button>
+      <button class="btn-primary" id="next-3" onclick="nextStep(4)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Current Level -->
+  <div class="step" id="step-4">
+    <div class="step-header">
+      <div class="step-num">Question <span>04</span> of 05</div>
+      <div class="step-question">Where are you right now?</div>
+    </div>
+    <div class="options-grid">
+      <div class="option-card" data-value="High school student (exploring options)" onclick="selectOption(this, 4)">
+        <span class="option-icon">🏫</span>
+        <div class="option-label">High School Student</div>
+        <div class="option-desc">Exploring options, early stage</div>
+      </div>
+      <div class="option-card" data-value="College/University student" onclick="selectOption(this, 4)">
+        <span class="option-icon">🎓</span>
+        <div class="option-label">College / University</div>
+        <div class="option-desc">Currently pursuing a degree</div>
+      </div>
+      <div class="option-card" data-value="Recent graduate (0–2 years experience)" onclick="selectOption(this, 4)">
+        <span class="option-icon">🆕</span>
+        <div class="option-label">Recent Graduate</div>
+        <div class="option-desc">0–2 years of experience</div>
+      </div>
+      <div class="option-card" data-value="Mid-career professional (3–8 years) looking to pivot" onclick="selectOption(this, 4)">
+        <span class="option-icon">🔁</span>
+        <div class="option-label">Career Switcher</div>
+        <div class="option-desc">3–8 years, looking to pivot</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="prevStep(3)">← Back</button>
+      <button class="btn-primary" id="next-4" onclick="nextStep(5)" disabled>Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Specific question -->
+  <div class="step" id="step-5">
+    <div class="step-header">
+      <div class="step-num">Question <span>05</span> of 05</div>
+      <div class="step-question">Any specific question or dilemma?</div>
+    </div>
+    <div class="text-input-wrap">
+      <textarea class="text-input" id="user-question" rows="4"
+        placeholder="e.g. 'Should I do coding or business?', 'Is data science a good field?', 'How do I switch from law to tech?' — or leave blank for a general guide."></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-back" onclick="prevStep(4)">← Back</button>
+      <button class="btn-primary" onclick="generateGuide()">🧭 Generate My Career Guide</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-section">
+    <div class="ornament">— ✦ —</div>
+    <div class="result-header">
+      <div class="result-eyebrow">Your Personalized Career Blueprint</div>
+      <div class="result-title" id="result-title">Your Career Guide</div>
+    </div>
+
+    <!-- Chips showing selections -->
+    <div class="chips" id="answer-chips" style="margin-bottom: 28px;"></div>
+
+    <div class="ai-response loading" id="ai-output">
+      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <span>Crafting your guide...</span>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-outline" onclick="resetGuide()">← Start Over</button>
+      <button class="btn-outline" onclick="copyResult()">📋 Copy Guide</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const answers = { 1: '', 2: '', 3: '', 4: '' };
+
+  function selectOption(el, step) {
+    const parent = el.parentElement;
+    parent.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[step] = el.dataset.value;
+    document.getElementById('next-' + step).disabled = false;
+  }
+
+  function nextStep(num) {
+    document.getElementById('step-' + (num - 1)).classList.remove('active');
+    document.getElementById('step-' + num).classList.add('active');
+    updateProgress(num);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function prevStep(num) {
+    document.getElementById('step-' + (num + 1)).classList.remove('active');
+    document.getElementById('step-' + num).classList.add('active');
+    updateProgress(num);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateProgress(step) {
+    const pct = ((step - 1) / 5) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+  }
+
+  async function generateGuide() {
+    // Hide steps, show result
+    document.getElementById('step-5').classList.remove('active');
+    document.getElementById('result-section').style.display = 'block';
+    document.getElementById('progress').style.width = '100%';
+
+    const userQ = document.getElementById('user-question').value.trim();
+
+    // Show chips
+    const chipsEl = document.getElementById('answer-chips');
+    const labels = [answers[1], answers[2], answers[3], answers[4]];
+    chipsEl.innerHTML = labels.filter(Boolean).map(l => `<div class="chip">${l.split('—')[0].trim()}</div>`).join('');
+
+    // Title
+    document.getElementById('result-title').textContent = `Your ${answers[1].split('&')[0].trim()} Career Blueprint`;
+
+    // Build prompt
+    const prompt = `You are an expert career counselor and life coach. A student/professional has answered these questions:
+
+1. What excites them most: ${answers[1]}
+2. How they prefer to work: ${answers[2]}
+3. Their biggest career goal: ${answers[3]}
+4. Their current stage: ${answers[4]}
+5. Their specific question or dilemma: ${userQ || 'None — give a general career guide'}
+
+Please provide a detailed, personalized career guide formatted with these sections:
+
+## 🎯 Best Career Paths For You
+List 3-4 specific career paths with brief explanation of why each fits them.
+
+## 🛠️ Top Skills to Learn (Priority Order)
+List the most important skills ranked by priority, with a sentence on why each matters.
+
+## 🗺️ Your 12-Month Roadmap
+Break it into Month 1-3, Month 4-6, Month 7-9, and Month 10-12 with concrete actions.
+
+## 💡 Answer to Your Specific Question
+${userQ ? `Directly address this: "${userQ}"` : 'Share the most important insight for someone at their stage.'}
+
+## ⚡ Top 3 Action Steps to Start This Week
+Give 3 immediate, concrete actions they can take right now.
+
+Be specific, encouraging, and actionable. Use their exact interests and goals to make it feel personalized. Keep it practical — avoid vague advice.`;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content?.map(b => b.text || '').join('') || 'Unable to generate guide. Please try again.';
+
+      renderResponse(text);
+    } catch (err) {
+      renderResponse('⚠️ Something went wrong. Please refresh and try again.');
+    }
+  }
+
+  function renderResponse(text) {
+    const el = document.getElementById('ai-output');
+    el.classList.remove('loading');
+
+    // Convert markdown to HTML
+    let html = text
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^[-•] (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/gs, match => `<ul>${match}</ul>`)
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/^(?!<[h|u|l])/gm, '');
+
+    // Wrap orphan text in <p>
+    html = '<p>' + html + '</p>';
+    html = html.replace(/<p>\s*<\/p>/g, '');
+    html = html.replace(/<p>(<[hul])/g, '$1');
+    html = html.replace(/(<\/[hul][^>]*>)<\/p>/g, '$1');
+
+    el.innerHTML = html;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetGuide() {
+    // Reset all
+    Object.keys(answers).forEach(k => answers[k] = '');
+    document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('[id^="next-"]').forEach(b => b.disabled = true);
+    document.getElementById('user-question').value = '';
+    document.getElementById('result-section').style.display = 'none';
+    document.getElementById('ai-output').classList.add('loading');
+    document.getElementById('ai-output').innerHTML = `<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>Crafting your guide...</span>`;
+
+    document.getElementById('step-1').classList.add('active');
+    document.getElementById('progress').style.width = '0%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyResult() {
+    const text = document.getElementById('ai-output').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Guide', 2000);
+    });
+  }
+</script>
+</body>
+</html>
